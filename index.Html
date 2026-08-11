@@ -1,0 +1,899 @@
+
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analysis & H.C 2026</title>
+    <!-- استدعاء خط Cairo الموحد من جوجل للأجهزة كافة -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <!-- مكتبة قراءة ملفات الإكسيل XLSX -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <!-- مكتبة الرسوم البيانية Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @charset "UTF-8";
+        
+        :root {
+            --nbe-green: #005A36;
+            --nbe-green-dark: #003F25;
+            --nbe-gold: #D49B27;
+            --nbe-gold-light: #FCE8BD;
+            --bg-color: #F4F6F8;
+            --card-bg: #FFFFFF;
+            --text-color: #1A202C;
+            --border-color: #CBD5E1;
+            --chart-resg: #E65100;
+        }
+
+        * {
+            box-sizing: border-box;
+            font-family: 'Cairo', 'Segoe UI', Tahoma, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            direction: rtl;
+            text-align: right;
+        }
+
+        .container {
+            max-width: 1500px;
+            margin: 0 auto;
+        }
+
+        header {
+            background: linear-gradient(135deg, var(--nbe-green-dark), var(--nbe-green));
+            color: white;
+            padding: 24px 30px;
+            border-radius: 12px;
+            margin-bottom: 24px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+            border-bottom: 4px solid var(--nbe-gold);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 26px;
+            font-weight: 800;
+        }
+
+        header p {
+            margin: 6px 0 0 0;
+            opacity: 0.9;
+            font-size: 14px;
+            color: var(--nbe-gold-light);
+        }
+
+        .action-bar {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .export-btn {
+            background-color: var(--nbe-gold);
+            color: #000;
+            padding: 10px 18px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .export-btn:hover {
+            background-color: #B8831D;
+            color: #FFF;
+        }
+
+        .clear-btn {
+            background-color: #E53E3E;
+            color: #FFF;
+            padding: 10px 18px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .upload-section {
+            background: var(--card-bg);
+            border: 2px dashed var(--nbe-green);
+            padding: 30px;
+            border-radius: 12px;
+            text-align: center;
+            margin-bottom: 24px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .upload-section:hover {
+            background-color: #E6F0EC;
+        }
+
+        .upload-btn {
+            background-color: var(--nbe-gold);
+            color: #000;
+            padding: 10px 24px;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 12px;
+        }
+
+        .dashboard {
+            display: none;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 24px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            border: 1px solid var(--border-color);
+        }
+
+        .card-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: var(--nbe-green);
+            margin-bottom: 16px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid var(--nbe-gold);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .kpi-card {
+            background: #FFFFFF;
+            padding: 18px;
+            border-radius: 10px;
+            border-right: 5px solid var(--nbe-green);
+            box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+        }
+
+        .kpi-card .title {
+            font-size: 13px;
+            color: #4A5568;
+            font-weight: 600;
+        }
+
+        .kpi-card .value {
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--nbe-green);
+            margin-top: 6px;
+        }
+
+        .grid-split {
+            display: grid;
+            grid-template-columns: 3fr 1fr;
+            gap: 16px;
+        }
+
+        @media (max-width: 1024px) {
+            .grid-split {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .table-responsive {
+            overflow-x: auto;
+            width: 100%;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+            text-align: center;
+            white-space: nowrap;
+        }
+
+        th, td {
+            padding: 10px 8px;
+            border: 1px solid var(--border-color);
+        }
+
+        th {
+            background-color: var(--nbe-green);
+            color: white;
+            font-weight: bold;
+        }
+
+        tr:nth-child(even) {
+            background-color: #F8FAFC;
+        }
+
+        .highlight-row {
+            background-color: var(--nbe-gold-light) !important;
+            font-weight: bold;
+            color: var(--nbe-green-dark);
+        }
+
+        .chart-container {
+            position: relative;
+            height: 320px;
+            margin-top: 16px;
+        }
+
+        .filter-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 16px;
+            margin-bottom: 20px;
+            background: #F8FAFC;
+            padding: 16px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+
+        .filter-box {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .filter-box label.title {
+            font-weight: bold;
+            font-size: 14px;
+            color: var(--nbe-green);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .checkbox-list {
+            height: 140px;
+            overflow-y: auto;
+            background: #FFFFFF;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+
+        .checkbox-item input {
+            cursor: pointer;
+            accent-color: var(--nbe-green);
+        }
+
+        .select-actions {
+            font-size: 11px;
+            color: var(--nbe-gold);
+            cursor: pointer;
+            text-decoration: underline;
+        }
+
+        .quarter-table th {
+            background-color: var(--nbe-gold);
+            color: #000;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <div>
+            <h1>Analysis & H.C 2026</h1>
+            <p>لوحة تحليلات القوى العاملة ورصيد الموظفين التراكمي</p>
+        </div>
+        <div class="action-bar" id="topActions" style="display: none;">
+            <button class="export-btn" onclick="exportShareableHTML()">💾 تصدير تقرير تفاعلي للمدير (HTML)</button>
+            <button class="clear-btn" onclick="clearSavedData()">🗑️ مسح البيانات</button>
+        </div>
+    </header>
+
+    <div class="upload-section" id="uploadSection" onclick="document.getElementById('excelFile').click()">
+        <p style="font-size: 18px; margin: 0; color: var(--nbe-green); font-weight: bold;">اضغط هنا أو قم بسحب ملف الإكسيل لرفعه</p>
+        <p style="font-size: 13px; color: #718096; margin-top: 4px;">يدعم ملفات .xlsx / .xls</p>
+        <input type="file" id="excelFile" accept=".xlsx, .xls" style="display: none;" onchange="handleFile(event)">
+        <button class="upload-btn">اختيار الملف</button>
+    </div>
+
+    <div id="dashboard" class="dashboard">
+
+        <!-- KPI Summary Cards -->
+        <div class="kpi-grid">
+            <div class="kpi-card">
+                <div class="title">معدل الدوران (الشركة كلها YTD)</div>
+                <div class="value" id="turnoverAll">-</div>
+            </div>
+            <div class="kpi-card">
+                <div class="title">معدل الدوران (Loan Officers YTD)</div>
+                <div class="value" id="turnoverLoan">-</div>
+            </div>
+            <div class="kpi-card">
+                <div class="title">معدل الدوران (Head Office YTD)</div>
+                <div class="value" id="turnoverHO">-</div>
+            </div>
+            <div class="kpi-card">
+                <div class="title">إجمالي عدد الموظفين الحالي (Headcount)</div>
+                <div class="value" id="currentHeadcount">-</div>
+            </div>
+        </div>
+
+        <!-- Section 1: All Company -->
+        <div class="card">
+            <div class="card-title">1. حركة الموظفين على مستوى الشركة ككل (All Company)</div>
+            <div class="grid-split">
+                <div class="table-responsive" id="tableAllCompany"></div>
+                <div class="table-responsive" id="quarterAllCompany"></div>
+            </div>
+            <div class="chart-container">
+                <canvas id="chartAllCompany"></canvas>
+            </div>
+        </div>
+
+        <!-- Section 2: Loan Officer -->
+        <div class="card">
+            <div class="card-title">2. حركة وظائف التمويل (Loan Officer / Senior / Coordinator)</div>
+            <div class="grid-split">
+                <div class="table-responsive" id="tableLoanOfficer"></div>
+                <div class="table-responsive" id="quarterLoanOfficer"></div>
+            </div>
+            <div class="chart-container">
+                <canvas id="chartLoanOfficer"></canvas>
+            </div>
+        </div>
+
+        <!-- Section 3: Head Office -->
+        <div class="card">
+            <div class="card-title">3. حركة المركز الرئيسي (Head Office - Cairo)</div>
+            <div class="grid-split">
+                <div class="table-responsive" id="tableHeadOffice"></div>
+                <div class="table-responsive" id="quarterHeadOffice"></div>
+            </div>
+            <div class="chart-container">
+                <canvas id="chartHeadOffice"></canvas>
+            </div>
+        </div>
+
+        <!-- Section 4: Dynamic Checkbox Filters -->
+        <div class="card">
+            <div class="card-title">4. فلترة مخصصة (اختيار خانات متعددة Checkboxes)</div>
+            
+            <div class="filter-grid">
+                <div class="filter-box">
+                    <label class="title">
+                        <span>الوظائف (Job Titles):</span>
+                        <span>
+                            <span class="select-actions" onclick="toggleAll('jobCheckboxes', true)">الكل</span> | 
+                            <span class="select-actions" onclick="toggleAll('jobCheckboxes', false)">إلغاء</span>
+                        </span>
+                    </label>
+                    <div class="checkbox-list" id="jobCheckboxes"></div>
+                </div>
+
+                <div class="filter-box">
+                    <label class="title">
+                        <span>الإدارات (Departments):</span>
+                        <span>
+                            <span class="select-actions" onclick="toggleAll('deptCheckboxes', true)">الكل</span> | 
+                            <span class="select-actions" onclick="toggleAll('deptCheckboxes', false)">إلغاء</span>
+                        </span>
+                    </label>
+                    <div class="checkbox-list" id="deptCheckboxes"></div>
+                </div>
+
+                <div class="filter-box">
+                    <label class="title">
+                        <span>المحافظات (Governorates):</span>
+                        <span>
+                            <span class="select-actions" onclick="toggleAll('govCheckboxes', true)">الكل</span> | 
+                            <span class="select-actions" onclick="toggleAll('govCheckboxes', false)">إلغاء</span>
+                        </span>
+                    </label>
+                    <div class="checkbox-list" id="govCheckboxes"></div>
+                </div>
+
+                <div class="filter-box">
+                    <label class="title">
+                        <span>الفروع (Branches):</span>
+                        <span>
+                            <span class="select-actions" onclick="toggleAll('branchCheckboxes', true)">الكل</span> | 
+                            <span class="select-actions" onclick="toggleAll('branchCheckboxes', false)">إلغاء</span>
+                        </span>
+                    </label>
+                    <div class="checkbox-list" id="branchCheckboxes"></div>
+                </div>
+            </div>
+
+            <div class="grid-split">
+                <div class="table-responsive" id="tableCustom"></div>
+                <div class="table-responsive" id="quarterCustom"></div>
+            </div>
+            <div class="chart-container">
+                <canvas id="chartCustom"></canvas>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    let rawData = [];
+    let chartInstances = {};
+
+    window.onload = function() {
+        const savedData = localStorage.getItem('hr_dashboard_data');
+        if (savedData) {
+            try {
+                rawData = JSON.parse(savedData);
+                if (rawData && rawData.length > 0) {
+                    processData();
+                    document.getElementById('dashboard').style.display = 'block';
+                    document.getElementById('topActions').style.display = 'flex';
+                }
+            } catch(e) {
+                console.error("Local storage error", e);
+            }
+        }
+    };
+
+    function handleFile(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function(evt) {
+            const data = new Uint8Array(evt.target.result);
+            const workbook = XLSX.read(data, { type: 'array', cellDates: true, cellText: true, raw: false });
+
+            const sheetName = workbook.SheetNames.includes('Sheet1') ? 'Sheet1' : workbook.SheetNames[0];
+            const worksheet = workbook.Sheets[sheetName];
+            
+            rawData = XLSX.utils.sheet_to_json(worksheet, { raw: false, dateNF: 'yyyy-mm-dd' });
+            
+            try {
+                localStorage.setItem('hr_dashboard_data', JSON.stringify(rawData));
+            } catch(err) {
+                console.warn("Could not save to LocalStorage");
+            }
+
+            processData();
+            document.getElementById('dashboard').style.display = 'block';
+            document.getElementById('topActions').style.display = 'flex';
+        };
+        reader.readAsArrayBuffer(file);
+    }
+
+    function clearSavedData() {
+        localStorage.removeItem('hr_dashboard_data');
+        location.reload();
+    }
+
+    // Export with UTF-8 BOM (\uFEFF) to guarantee explicit Arabic rendering on any Manager device
+    function exportShareableHTML() {
+        let docHtml = document.documentElement.outerHTML;
+        let embeddedScript = `<script>rawData = ${JSON.stringify(rawData)}; window.onload = function() { processData(); document.getElementById('dashboard').style.display = 'block'; document.getElementById('topActions').style.display = 'flex'; };<\/script>`;
+        
+        let finalHtml = docHtml.replace('</body>', embeddedScript + '</body>');
+        
+        // Add UTF-8 Byte Order Mark (\uFEFF) at the start
+        let blob = new Blob(["\uFEFF" + finalHtml], { type: 'text/html;charset=utf-8' });
+        let link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = 'HR_Dashboard_Report_Manager.html';
+        link.click();
+    }
+
+    function parseDateObj(val) {
+        if (!val) return null;
+
+        if (val instanceof Date) {
+            if (isNaN(val.getTime())) return null;
+            let d = new Date(val.getTime() + 12 * 3600 * 1000);
+            return { year: d.getUTCFullYear(), month: d.getUTCMonth() };
+        }
+
+        let str = val.toString().trim();
+        if (!str || str === 'NaT' || str === 'undefined' || str === 'null') return null;
+
+        let isoMatch = str.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})/);
+        if (isoMatch) {
+            return { year: parseInt(isoMatch[1], 10), month: parseInt(isoMatch[2], 10) - 1 };
+        }
+
+        let parts = str.split(/[-/]/);
+        if (parts.length === 3) {
+            let p1 = parseInt(parts[0], 10);
+            let p2 = parseInt(parts[1], 10);
+            let p3 = parseInt(parts[2], 10);
+
+            if (p3 > 1900) {
+                return { year: p3, month: p2 - 1 };
+            }
+        }
+
+        let d = new Date(str);
+        if (!isNaN(d.getTime())) {
+            let d2 = new Date(d.getTime() + 12 * 3600 * 1000);
+            return { year: d2.getUTCFullYear(), month: d2.getUTCMonth() };
+        }
+
+        return null;
+    }
+
+    function processData() {
+        populateFilterCheckboxes();
+
+        const allStats = calculateStats(() => true);
+        renderTable('tableAllCompany', allStats);
+        renderQuarterTable('quarterAllCompany', allStats);
+        renderChart('chartAllCompany', 'حركة التعيينات والاستقالات والرصيد (الشركة ككل)', allStats);
+
+        const loanStats = calculateStats(row => {
+            const job = (row['English job Title'] || '').toString().toLowerCase().trim();
+            return job.includes('loan');
+        });
+        renderTable('tableLoanOfficer', loanStats);
+        renderQuarterTable('quarterLoanOfficer', loanStats);
+        renderChart('chartLoanOfficer', 'حركة التعيينات والاستقالات والرصيد (وظائف التمويل)', loanStats);
+
+        const hoStats = calculateStats(row => {
+            const gov = (row['Governorates'] || '').toString().trim().toLowerCase();
+            return gov === 'cairo';
+        });
+        renderTable('tableHeadOffice', hoStats);
+        renderQuarterTable('quarterHeadOffice', hoStats);
+        renderChart('chartHeadOffice', 'حركة التعيينات والاستقالات والرصيد (المركز الرئيسي)', hoStats);
+
+        renderCustomAnalysis();
+
+        document.getElementById('turnoverAll').innerText = (allStats.turnoverRate * 100).toFixed(2) + '%';
+        document.getElementById('turnoverLoan').innerText = (loanStats.turnoverRate * 100).toFixed(2) + '%';
+        document.getElementById('turnoverHO').innerText = (hoStats.turnoverRate * 100).toFixed(2) + '%';
+        
+        const lastMonthIndex = allStats.lastActiveMonthIndex;
+        document.getElementById('currentHeadcount').innerText = allStats.headcount2026[lastMonthIndex].toLocaleString();
+    }
+
+    function calculateStats(filterFn) {
+        const years = [2020, 2021, 2022, 2023, 2024, 2025];
+        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+        let hiringYears = { 2020: 0, 2021: 0, 2022: 0, 2023: 0, 2024: 0, 2025: 0 };
+        let resgYears   = { 2020: 0, 2021: 0, 2022: 0, 2023: 0, 2024: 0, 2025: 0 };
+
+        let hiring2026 = Array(12).fill(0);
+        let resg2026   = Array(12).fill(0);
+
+        rawData.forEach(row => {
+            if (!filterFn(row)) return;
+
+            const hireYM = parseDateObj(row['Hire date']);
+            const resgYM = parseDateObj(row['Resignation Date']);
+
+            if (hireYM) {
+                if (hireYM.year >= 2020 && hireYM.year <= 2025) {
+                    hiringYears[hireYM.year] = (hiringYears[hireYM.year] || 0) + 1;
+                } else if (hireYM.year === 2026 && hireYM.month >= 0 && hireYM.month < 12) {
+                    hiring2026[hireYM.month]++;
+                }
+            }
+
+            if (resgYM) {
+                if (resgYM.year >= 2020 && resgYM.year <= 2025) {
+                    resgYears[resgYM.year] = (resgYears[resgYM.year] || 0) + 1;
+                } else if (resgYM.year === 2026 && resgYM.month >= 0 && resgYM.month < 12) {
+                    resg2026[resgYM.month]++;
+                }
+            }
+        });
+
+        const totalHiringUpTo2025 = Object.values(hiringYears).reduce((a, b) => a + b, 0);
+        const totalResgUpTo2025   = Object.values(resgYears).reduce((a, b) => a + b, 0);
+        const opening2026Headcount = totalHiringUpTo2025 - totalResgUpTo2025;
+
+        let headcount2026 = [];
+        let currentHeadcount = opening2026Headcount;
+        let lastActiveMonthIndex = 0;
+
+        for (let i = 0; i < 12; i++) {
+            currentHeadcount = currentHeadcount + hiring2026[i] - resg2026[i];
+            headcount2026.push(currentHeadcount);
+            if (hiring2026[i] > 0 || resg2026[i] > 0) {
+                lastActiveMonthIndex = i;
+            }
+        }
+
+        let totalResgYTD = 0;
+        for (let i = 0; i <= lastActiveMonthIndex; i++) {
+            totalResgYTD += resg2026[i];
+        }
+
+        const janHeadcount = headcount2026[0];
+        const currentMonthHeadcount = headcount2026[lastActiveMonthIndex];
+        const avgHeadcount = (janHeadcount + currentMonthHeadcount) / 2;
+        const turnoverRate = avgHeadcount > 0 ? (totalResgYTD / avgHeadcount) : 0;
+
+        const quartersCumulative = [
+            { name: 'Q1 (يناير - مارس)', monthsRange: [0, 1, 2] },
+            { name: 'Q2 (يناير - يونيو)', monthsRange: [0, 1, 2, 3, 4, 5] },
+            { name: 'Q3 (يناير - سبتمبر)', monthsRange: [0, 1, 2, 3, 4, 5, 6, 7, 8] },
+            { name: 'Q4 (يناير - ديسمبر)', monthsRange: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11] }
+        ];
+
+        let quarterStats = quartersCumulative.map(q => {
+            let qHiring = q.monthsRange.reduce((acc, m) => acc + hiring2026[m], 0);
+            let qResg = q.monthsRange.reduce((acc, m) => acc + resg2026[m], 0);
+            
+            let startHC = janHeadcount;
+            let lastMonthInQ = q.monthsRange[q.monthsRange.length - 1];
+            let endHC = headcount2026[lastMonthInQ];
+            let avgQHC = (startHC + endHC) / 2;
+            let qTurnover = avgQHC > 0 ? (qResg / avgQHC) : 0;
+
+            return {
+                name: q.name,
+                hiring: qHiring,
+                resg: qResg,
+                turnover: qTurnover
+            };
+        });
+
+        return {
+            years,
+            months,
+            hiringYears,
+            resgYears,
+            totalHiringUpTo2025,
+            totalResgUpTo2025,
+            opening2026Headcount,
+            hiring2026,
+            resg2026,
+            headcount2026,
+            lastActiveMonthIndex,
+            turnoverRate,
+            quarterStats
+        };
+    }
+
+    function renderTable(containerId, stats) {
+        let html = `
+        <table>
+            <thead>
+                <tr>
+                    <th>البيان</th>
+                    ${stats.years.map(y => `<th>${y}</th>`).join('')}
+                    <th>إجمالي حتى 2025</th>
+                    ${stats.months.map(m => `<th>${m} 2026</th>`).join('')}
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><b>إجمالي التعيينات (Hiring)</b></td>
+                    ${stats.years.map(y => `<td>${stats.hiringYears[y]}</td>`).join('')}
+                    <td><b>${stats.totalHiringUpTo2025}</b></td>
+                    ${stats.hiring2026.map(h => `<td>${h}</td>`).join('')}
+                </tr>
+                <tr>
+                    <td><b>إجمالي الاستقالات (Resignations)</b></td>
+                    ${stats.years.map(y => `<td>${stats.resgYears[y]}</td>`).join('')}
+                    <td><b>${stats.totalResgUpTo2025}</b></td>
+                    ${stats.resg2026.map(r => `<td>${r}</td>`).join('')}
+                </tr>
+                <tr class="highlight-row">
+                    <td><b>العدد الفعلي (Head Count)</b></td>
+                    <td colspan="6" style="color: #718096;">-</td>
+                    <td><b>${stats.opening2026Headcount}</b></td>
+                    ${stats.headcount2026.map(hc => `<td><b>${hc}</b></td>`).join('')}
+                </tr>
+            </tbody>
+        </table>`;
+
+        document.getElementById(containerId).innerHTML = html;
+    }
+
+    function renderQuarterTable(containerId, stats) {
+        let html = `
+        <table class="quarter-table">
+            <thead>
+                <tr>
+                    <th>الفترة التراكمية</th>
+                    <th>التعيينات</th>
+                    <th>الاستقالات</th>
+                    <th>معدل الدوران</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${stats.quarterStats.map(q => `
+                    <tr>
+                        <td><b>${q.name}</b></td>
+                        <td>${q.hiring}</td>
+                        <td>${q.resg}</td>
+                        <td><b>${(q.turnover * 100).toFixed(2)}%</b></td>
+                    </tr>
+                `).join('')}
+            </tbody>
+        </table>`;
+
+        document.getElementById(containerId).innerHTML = html;
+    }
+
+    function renderChart(canvasId, title, stats) {
+        const ctx = document.getElementById(canvasId).getContext('2d');
+
+        if (chartInstances[canvasId]) {
+            chartInstances[canvasId].destroy();
+        }
+
+        const activeMonths = stats.months.slice(0, stats.lastActiveMonthIndex + 1);
+        const activeHiring = stats.hiring2026.slice(0, stats.lastActiveMonthIndex + 1);
+        const activeResg   = stats.resg2026.slice(0, stats.lastActiveMonthIndex + 1);
+        const activeHC     = stats.headcount2026.slice(0, stats.lastActiveMonthIndex + 1);
+
+        chartInstances[canvasId] = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: activeMonths,
+                datasets: [
+                    {
+                        label: 'التعيينات',
+                        data: activeHiring,
+                        backgroundColor: '#005A36',
+                        borderColor: '#003F25',
+                        borderWidth: 1,
+                        yAxisID: 'y'
+                    },
+                    {
+                        label: 'الاستقالات',
+                        data: activeResg,
+                        backgroundColor: '#E65100',
+                        borderColor: '#BF360C',
+                        borderWidth: 1,
+                        yAxisID: 'y'
+                    },
+                    {
+                        label: 'العدد الفعلي (Headcount)',
+                        data: activeHC,
+                        type: 'line',
+                        borderColor: '#D49B27',
+                        backgroundColor: 'rgba(212, 155, 39, 0.15)',
+                        fill: false,
+                        tension: 0.3,
+                        borderWidth: 3,
+                        yAxisID: 'y1'
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: title,
+                        font: { size: 14, weight: 'bold', family: 'Cairo' },
+                        color: '#005A36'
+                    }
+                },
+                scales: {
+                    y: {
+                        type: 'linear',
+                        display: true,
+                        position: 'left',
+                        title: { display: true, text: 'أعداد التعيين والاستقالة' }
+                    },
+                    y1: {
+                        type: 'linear',
+                        display: true,
+                        position: 'right',
+                        grid: { drawOnChartArea: false },
+                        title: { display: true, text: 'إجمالي الموظفين (Headcount)' }
+                    }
+                }
+            }
+        });
+    }
+
+    function populateFilterCheckboxes() {
+        const depts = new Set();
+        const jobs = new Set();
+        const govs = new Set();
+        const branches = new Set();
+
+        rawData.forEach(row => {
+            if (row['Department']) depts.add(row['Department'].toString().trim());
+            if (row['English job Title']) jobs.add(row['English job Title'].toString().trim());
+            if (row['Governorates']) govs.add(row['Governorates'].toString().trim());
+            if (row['Branch']) branches.add(row['Branch'].toString().trim());
+        });
+
+        fillCheckboxList('jobCheckboxes', Array.from(jobs).sort());
+        fillCheckboxList('deptCheckboxes', Array.from(depts).sort());
+        fillCheckboxList('govCheckboxes', Array.from(govs).sort());
+        fillCheckboxList('branchCheckboxes', Array.from(branches).sort());
+    }
+
+    function fillCheckboxList(containerId, items) {
+        const container = document.getElementById(containerId);
+        container.innerHTML = '';
+        items.forEach((item, index) => {
+            const div = document.createElement('div');
+            div.className = 'checkbox-item';
+            div.innerHTML = `
+                <input type="checkbox" id="${containerId}_${index}" value="${item}" onchange="renderCustomAnalysis()">
+                <label for="${containerId}_${index}">${item}</label>
+            `;
+            container.appendChild(div);
+        });
+    }
+
+    function toggleAll(containerId, checkState) {
+        const checkboxes = document.querySelectorAll(`#${containerId} input[type="checkbox"]`);
+        checkboxes.forEach(cb => cb.checked = checkState);
+        renderCustomAnalysis();
+    }
+
+    function getCheckedValues(containerId) {
+        const checkboxes = document.querySelectorAll(`#${containerId} input[type="checkbox"]:checked`);
+        return Array.from(checkboxes).map(cb => cb.value);
+    }
+
+    function renderCustomAnalysis() {
+        const selectedJobs = getCheckedValues('jobCheckboxes');
+        const selectedDepts = getCheckedValues('deptCheckboxes');
+        const selectedGovs = getCheckedValues('govCheckboxes');
+        const selectedBranches = getCheckedValues('branchCheckboxes');
+
+        const customStats = calculateStats(row => {
+            const dept = row['Department'] ? row['Department'].toString().trim() : '';
+            const job = row['English job Title'] ? row['English job Title'].toString().trim() : '';
+            const gov = row['Governorates'] ? row['Governorates'].toString().trim() : '';
+            const branch = row['Branch'] ? row['Branch'].toString().trim() : '';
+
+            const matchJob  = selectedJobs.length === 0 || selectedJobs.includes(job);
+            const matchDept = selectedDepts.length === 0 || selectedDepts.includes(dept);
+            const matchGov  = selectedGovs.length === 0 || selectedGovs.includes(gov);
+            const matchBranch = selectedBranches.length === 0 || selectedBranches.includes(branch);
+
+            return matchJob && matchDept && matchGov && matchBranch;
+        });
+
+        renderTable('tableCustom', customStats);
+        renderQuarterTable('quarterCustom', customStats);
+        renderChart('chartCustom', 'حركة التعيينات والاستقالات للفلترة المخصصة المحددة', customStats);
+    }
+</script>
+
+</body>
+</html>
